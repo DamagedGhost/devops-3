@@ -6,9 +6,47 @@ import { FormCierreDespacho } from "./FormCierreDespacho";
 export const TableDespachos = () => {
   const [despachos, setDespachos] = useState([]);
 
+  const formatValue = (value, fallback = "Sin dato") => {
+    if (value === null || value === undefined || value === "") {
+      return fallback;
+    }
+
+    return value;
+  };
+
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === "") {
+      return "Sin valor";
+    }
+
+    return new Intl.NumberFormat("es-CL", {
+      style: "currency",
+      currency: "CLP",
+      maximumFractionDigits: 0,
+    }).format(Number(value));
+  };
+
+  const formatDate = (value) => {
+    if (!value) {
+      return "Pendiente";
+    }
+
+    const normalizedDate = String(value).split("T")[0];
+    const [year, month, day] = normalizedDate.split("-");
+
+    if (!year || !month || !day) {
+      return value;
+    }
+
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatDespachoStatus = (value) =>
+    value ? "Despacho entregado" : "Despacho pendiente";
+
   const despacho = async () => {
     await axios
-      .get("http://192.168.3.20/api/v1/despachos", {
+      .get("/api/v1/despachos", {
         headers:{
               'Content-Type': 'application/json',
               'Accept': 'application/json'
@@ -47,33 +85,36 @@ export const TableDespachos = () => {
                   <th className="pr-10">Patente Camión</th>
                   <th className="pr-10">Entregado</th>
                   <th className="pr-10">Intentos de entrega</th>
+                  <th className="pr-10">Valor compra</th>
                 </tr>
               </thead>
               <tbody>
                 {despachos
-               
-                .map((despacho) => (
+                  .map((despacho) => (
                   <tr key={despacho.idDespacho}>
-                    <td className="pr-10 py-10 items-center">{despacho.idDespacho}</td>
-                    <td className="pr-10 py-10  items-center">
-                      {despacho.idCompra}
+                    <td className="pr-10 py-10 items-center">
+                      {formatValue(despacho.idDespacho, "N/A")}
                     </td>
                     <td className="pr-10 py-10  items-center">
-                      {despacho.direccionCompra}
+                      {formatValue(despacho.idCompra)}
                     </td>
                     <td className="pr-10 py-10  items-center">
-                      {despacho.fechaDespacho}
+                      {formatValue(despacho.direccionCompra)}
                     </td>
                     <td className="pr-10 py-10  items-center">
-                      {despacho.patenteCamion}
+                      {formatDate(despacho.fechaDespacho)}
                     </td>
                     <td className="pr-10 py-10  items-center">
-                      {despacho.entregado
-                        ? "Despacho entregado"
-                        : "Despacho pendiente"}
+                      {formatValue(despacho.patenteCamion)}
                     </td>
                     <td className="pr-10 py-10  items-center">
-                      {despacho.intento}
+                      {formatDespachoStatus(despacho.despachado)}
+                    </td>
+                    <td className="pr-10 py-10  items-center">
+                      {formatValue(despacho.intento, 0)}
+                    </td>
+                    <td className="pr-10 py-10  items-center">
+                      {formatCurrency(despacho.valorCompra)}
                     </td>
                     <td>
                       <button

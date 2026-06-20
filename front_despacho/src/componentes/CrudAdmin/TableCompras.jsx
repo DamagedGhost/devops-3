@@ -6,8 +6,43 @@ import axios from "axios";
 export const TableCompras = () => {
   const [ventas, setVentas] = useState([]);
 
+  const formatValue = (value, fallback = "Sin dato") => {
+    if (value === null || value === undefined || value === "") {
+      return fallback;
+    }
+
+    return value;
+  };
+
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === "") {
+      return "Sin valor";
+    }
+
+    return new Intl.NumberFormat("es-CL", {
+      style: "currency",
+      currency: "CLP",
+      maximumFractionDigits: 0,
+    }).format(Number(value));
+  };
+
+  const formatDate = (value) => {
+    if (!value) {
+      return "Pendiente";
+    }
+
+    const normalizedDate = String(value).split("T")[0];
+    const [year, month, day] = normalizedDate.split("-");
+
+    if (!year || !month || !day) {
+      return value;
+    }
+
+    return `${day}/${month}/${year}`;
+  };
+
   const compras = async () => {
-    await axios.get("http://192.168.30/api/v1/ventas", {
+    await axios.get("/api/v1/ventas", {
       headers:{
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -53,16 +88,16 @@ export const TableCompras = () => {
                   .map((venta) => (
                     <tr key={venta.idVenta}>
                       <td className="pr-10 py-10 items-center">
-                        {venta.idVenta}
+                        {formatValue(venta.idVenta, "N/A")}
                       </td>
                       <td className="pr-10 py-10  items-center">
-                        {venta.direccionCompra}
+                        {formatValue(venta.direccionCompra)}
                       </td>
                       <td className="pr-10 py-10  items-center">
-                        {venta.fechaCompra}
+                        {formatDate(venta.fechaCompra)}
                       </td>
                       <td className="pr-10 py-10  items-center">
-                        ${venta.valorCompra}
+                        {formatCurrency(venta.valorCompra)}
                       </td>
                       <td>
                         <button
