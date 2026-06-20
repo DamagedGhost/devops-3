@@ -1,0 +1,4 @@
+apiVersion: v1 # version of the Kubernetes API
+kind: Namespace
+metadata: # metadata about the namespace
+  name: innovatech

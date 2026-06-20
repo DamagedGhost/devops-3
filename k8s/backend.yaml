@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-ventas-deployment
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: backend-ventas
+        image: backend-ventas:v1
+
+--- # ----------------------------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-ventas-service
+#
+
+--- # ----------------------------------
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-despacho-deployment
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: backend-despacho
+        image: backend-despacho:v1
+
+--- # ----------------------------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-despacho-service
