@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+  namespace: innovatech
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend-app
+  template:
+    metadata:
+      labels:
+        app: frontend-app
+    spec:
+      containers:
+      - name: frontend
+        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/front:latest # REEMPLAZAR
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "20m"      # Súper ligero
+            memory: "64Mi" 
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  namespace: innovatech
+  annotations:
+    # Esto le dice a AWS que cree un LoadBalancer clásico frente a tu VPC
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend-app
+  ports:
+  - port: 80
+    targetPort: 80

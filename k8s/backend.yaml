@@ -1,40 +1,122 @@
+# ==========================================
+# MICROSERVICIO: VENTA
+# ==========================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-ventas-deployment
+  name: backend-venta
+  namespace: innovatech
 spec:
-  replicas: 2
+  selector:
+    matchLabels:
+      app: backend-venta
   template:
+    metadata:
+      labels:
+        app: backend-venta
     spec:
       containers:
-      - name: backend-ventas
-        image: backend-ventas:v1
-
---- # ----------------------------------
-
+      - name: venta
+        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-ventas:latest # REEMPLAZAR
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "50m"      # Bajamos de 250m a 50m
+            memory: "128Mi" # Bajamos de 512Mi a 128Mi
+          limits:
+            cpu: "250m"
+            memory: "512Mi"
+        env:
+        - name: DB_ENDPOINT
+          value: "innovatech-db-svc" # El DNS interno de tu base de datos en K8s
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "innovatech_db"
+        # Cumpliendo con el IE5: Gestión de Secrets
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: innovatech-db-secret
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: innovatech-db-secret
+              key: MYSQL_PASSWORD
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-ventas-service
-#
+  name: backend-venta-svc
+  namespace: innovatech
+spec:
+  type: ClusterIP
+  selector:
+    app: backend-venta
+  ports:
+  - port: 8080
+    targetPort: 8080
 
---- # ----------------------------------
-
+---
+# ==========================================
+# MICROSERVICIO: DESPACHO
+# ==========================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-despacho-deployment
+  name: backend-despacho
+  namespace: innovatech
 spec:
-  replicas: 2
+  selector:
+    matchLabels:
+      app: backend-despacho
   template:
+    metadata:
+      labels:
+        app: backend-despacho
     spec:
       containers:
-      - name: backend-despacho
-        image: backend-despacho:v1
-
---- # ----------------------------------
-
+      - name: despacho
+        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-despachos:latest # REEMPLAZAR
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "50m"      # Bajamos de 250m a 50m
+            memory: "128Mi" # Bajamos de 512Mi a 128Mi
+          limits:
+            cpu: "250m"
+            memory: "512Mi"
+        env:
+        - name: DB_ENDPOINT
+          value: "innovatech-db-svc" # El DNS interno de tu base de datos en K8s
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "innovatech_db"
+        # Cumpliendo con el IE5: Gestión de Secrets
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: innovatech-db-secret
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: innovatech-db-secret
+              key: MYSQL_PASSWORD
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-despacho-service
+  name: backend-despacho-svc
+  namespace: innovatech
+spec:
+  type: ClusterIP
+  selector:
+    app: backend-despacho
+  ports:
+  - port: 8080
+    targetPort: 8080

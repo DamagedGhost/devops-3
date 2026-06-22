@@ -1,20 +1,41 @@
-apiVersion: autoscaling/v1
+# HPA para Venta
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: innovatech-hpa
+  name: hpa-venta
   namespace: innovatech
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: innovatech-backend
-  minReplicas: 2
-  maxReplicas: 10
+    name: backend-venta
+  minReplicas: 1
+  maxReplicas: 3
   metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
-# !evaluar si se puede agregar varias metricas de diferentes contenedores
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50 # Justificación: Mantener margen de seguridad del 50% para peaks repentinos
+---
+# HPA para Despacho
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-despacho
+  namespace: innovatech
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-despacho
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
