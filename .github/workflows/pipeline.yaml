@@ -118,7 +118,7 @@ jobs:
 
     - name: Actualizar credenciales de EKS
       run: |
-        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name clusster
+        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name EKS-prueba
 
     - name: Obligar a Kubernetes a desplegar los cambios (Rolling Update)
       run: |
