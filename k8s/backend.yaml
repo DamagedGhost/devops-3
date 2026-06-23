@@ -96,12 +96,12 @@ spec:
         # EL SEGURO DE VIDA: Pruebas de salud
         readinessProbe:
           tcpSocket:
-            port: 8081 # (8081 para despachos)
+            port: 8080
           initialDelaySeconds: 20 # K8s esperará 20 seg antes de probar
           periodSeconds: 10       # Re-probará cada 10 seg
         livenessProbe:
           tcpSocket:
-            port: 8081 # (8081 para despachos)
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 15
         resources:
