@@ -132,14 +132,10 @@ jobs:
         kubectl apply -f k8s/backend.yaml
         kubectl apply -f k8s/frontend.yaml
         kubectl apply -f k8s/hpa.yaml
-        # Forzar rollout único con annotation de timestamp
-        # (reemplaza el kubectl rollout restart separado)
-        TIMESTAMP=$(date -Iseconds)
-        kubectl annotate deployment backend-venta backend-despacho frontend-app \
-          kubectl.kubernetes.io/restartedAt="$TIMESTAMP" \
-          -n innovatech --overwrite
 
-    # ELIMINADO: kubectl rollout restart (era el culpable del double rollout)
+    - name: Obligar a Kubernetes a desplegar los cambios (Rolling Update)
+      run: |
+        kubectl rollout restart deployment backend-venta backend-despacho frontend-app -n innovatech
 
     - name: Verificar deploy exitoso
       run: |
