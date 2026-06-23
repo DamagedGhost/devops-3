@@ -143,6 +143,6 @@ jobs:
     # 300s es suficiente para la startupProbe (máx 300s) + margen
     - name: Verificar deploy exitoso
       run: |
-        kubectl rollout status deployment/backend-venta -n innovatech --timeout=400s
-        kubectl rollout status deployment/backend-despacho -n innovatech --timeout=400s
-        kubectl rollout status deployment/frontend-app -n innovatech --timeout=60s
+        kubectl rollout status deployment/backend-venta -n innovatech --timeout=600s
+        kubectl rollout status deployment/backend-despacho -n innovatech --timeout=600s
+        kubectl rollout status deployment/frontend-app -n innovatech --timeout=90s

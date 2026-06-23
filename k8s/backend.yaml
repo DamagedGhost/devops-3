@@ -20,7 +20,7 @@ spec:
       labels:
         app: backend-venta
     spec:
-      terminationGracePeriodSeconds: 40  # mayor que preStop sleep + tiempo de requests en vuelo
+      terminationGracePeriodSeconds: 20
       containers:
       - name: venta
         image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-ventas:latest
@@ -115,7 +115,7 @@ spec:
       labels:
         app: backend-despacho
     spec:
-      terminationGracePeriodSeconds: 40
+      terminationGracePeriodSeconds: 20
       containers:
       - name: despacho
         image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-despachos:latest
