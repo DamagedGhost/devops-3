@@ -10,6 +10,11 @@ spec:
   selector:
     matchLabels:
       app: backend-venta
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -33,8 +38,8 @@ spec:
           httpGet:
             path: /actuator/health  # si no tienen actuator, usar tcpSocket port 8080
             port: 8080
-          failureThreshold: 30
-          periodSeconds: 10
+          failureThreshold: 60
+          periodSeconds: 5
         # readinessProbe: solo se activa DESPUÉS de que startupProbe pase
         readinessProbe:
           httpGet:
@@ -100,6 +105,11 @@ spec:
   selector:
     matchLabels:
       app: backend-despacho
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -119,8 +129,8 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8080
-          failureThreshold: 30
-          periodSeconds: 10
+          failureThreshold: 60
+          periodSeconds: 5
         readinessProbe:
           httpGet:
             path: /actuator/health
