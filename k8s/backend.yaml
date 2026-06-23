@@ -20,13 +20,24 @@ spec:
         image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-ventas:latest # REEMPLAZAR
         ports:
         - containerPort: 8080
+        # EL SEGURO DE VIDA: Pruebas de salud
+        readinessProbe:
+          tcpSocket:
+            port: 8080 # (8081 para despachos)
+          initialDelaySeconds: 20 # K8s esperará 20 seg antes de probar
+          periodSeconds: 10       # Re-probará cada 10 seg
+        livenessProbe:
+          tcpSocket:
+            port: 8080 # (8081 para despachos)
+          initialDelaySeconds: 30
+          periodSeconds: 15
         resources:
           requests:
-            cpu: "50m"      # Bajamos de 250m a 50m
-            memory: "128Mi" # Bajamos de 512Mi a 128Mi
+            cpu: "100m"      # Bajamos de 250m a 100m
+            memory: "256Mi" # Bajamos de 512Mi a 128Mi
           limits:
-            cpu: "250m"
-            memory: "512Mi"
+            cpu: "600m"
+            memory: "768Mi"
         env:
         - name: DB_ENDPOINT
           value: "innovatech-db-svc" # El DNS interno de tu base de datos en K8s
@@ -82,13 +93,24 @@ spec:
         image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-despachos:latest # REEMPLAZAR
         ports:
         - containerPort: 8080
+        # EL SEGURO DE VIDA: Pruebas de salud
+        readinessProbe:
+          tcpSocket:
+            port: 8081 # (8081 para despachos)
+          initialDelaySeconds: 20 # K8s esperará 20 seg antes de probar
+          periodSeconds: 10       # Re-probará cada 10 seg
+        livenessProbe:
+          tcpSocket:
+            port: 8081 # (8081 para despachos)
+          initialDelaySeconds: 30
+          periodSeconds: 15
         resources:
           requests:
-            cpu: "50m"      # Bajamos de 250m a 50m
-            memory: "128Mi" # Bajamos de 512Mi a 128Mi
+            cpu: "100m"      # Bajamos de 250m a 50m
+            memory: "256Mi" # Bajamos de 512Mi a 128Mi
           limits:
-            cpu: "250m"
-            memory: "512Mi"
+            cpu: "600m"
+            memory: "768Mi"
         env:
         - name: DB_ENDPOINT
           value: "innovatech-db-svc" # El DNS interno de tu base de datos en K8s
