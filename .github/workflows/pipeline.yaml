@@ -123,8 +123,6 @@ jobs:
       run: |
         aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name EKS-prueba
 
-    # NUEVO: aplica los manifests en orden de dependencia
-    # Ajusta las rutas según dónde estén tus YAMLs en el repo
     - name: Aplicar manifiestos de Kubernetes
       run: |
         kubectl apply -f k8s/namespace.yaml
@@ -134,15 +132,19 @@ jobs:
         kubectl apply -f k8s/backend.yaml
         kubectl apply -f k8s/frontend.yaml
         kubectl apply -f k8s/hpa.yaml
+        # Forzar rollout único con annotation de timestamp
+        # (reemplaza el kubectl rollout restart separado)
+        TIMESTAMP=$(date -Iseconds)
+        kubectl annotate deployment backend-venta backend-despacho frontend-app \
+          kubectl.kubernetes.io/restartedAt="$TIMESTAMP" \
+          -n innovatech --overwrite
 
-    - name: Forzar rolling update con nueva imagen
-      run: |
-        kubectl rollout restart deployment backend-venta backend-despacho frontend-app -n innovatech
+    # ELIMINADO: kubectl rollout restart (era el culpable del double rollout)
 
-    # NUEVO: espera a que los pods estén realmente listos antes de reportar success
-    # 300s es suficiente para la startupProbe (máx 300s) + margen
     - name: Verificar deploy exitoso
       run: |
-        kubectl rollout status deployment/backend-venta -n innovatech --timeout=600s
-        kubectl rollout status deployment/backend-despacho -n innovatech --timeout=600s
-        kubectl rollout status deployment/frontend-app -n innovatech --timeout=90s
+        # & para correr en paralelo, wait para esperar a que terminen todos
+        kubectl rollout status deployment/backend-venta -n innovatech --timeout=300s &
+        kubectl rollout status deployment/backend-despacho -n innovatech --timeout=300s &
+        kubectl rollout status deployment/frontend-app -n innovatech --timeout=90s &
+        wait
