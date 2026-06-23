@@ -99,15 +99,18 @@ jobs:
         docker push -a $REGISTRY/back-despachos
 
   # ==========================================
-  # ETAPA 4: DEPLOY EN EKS (Espera a las etapas 1, 2 y 3)
+  # ETAPA 4: DEPLOY EN EKS
   # ==========================================
   deploy-eks:
     name: Deploy to Amazon EKS
     runs-on: ubuntu-latest
-    # CRÍTICO: Este job SOLO arranca si los 3 builds terminaron con éxito en paralelo
-    needs: [build-frontend, build-backend-ventas, build-backend-despachos] 
+    needs: [build-frontend, build-backend-ventas, build-backend-despachos]
 
     steps:
+    # NUEVO: sin esto no puedes acceder a los YAMLs del repo
+    - name: Checkout del código
+      uses: actions/checkout@v4
+
     - name: Configurar credenciales AWS
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -120,6 +123,26 @@ jobs:
       run: |
         aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name EKS-prueba
 
-    - name: Obligar a Kubernetes a desplegar los cambios (Rolling Update)
+    # NUEVO: aplica los manifests en orden de dependencia
+    # Ajusta las rutas según dónde estén tus YAMLs en el repo
+    - name: Aplicar manifiestos de Kubernetes
+      run: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/secrets.yaml
+        kubectl apply -f k8s/init-db.yaml
+        kubectl apply -f k8s/database.yaml
+        kubectl apply -f k8s/backend.yaml
+        kubectl apply -f k8s/frontend.yaml
+        kubectl apply -f k8s/hpa.yaml
+
+    - name: Forzar rolling update con nueva imagen
       run: |
         kubectl rollout restart deployment backend-venta backend-despacho frontend-app -n innovatech
+
+    # NUEVO: espera a que los pods estén realmente listos antes de reportar success
+    # 300s es suficiente para la startupProbe (máx 300s) + margen
+    - name: Verificar deploy exitoso
+      run: |
+        kubectl rollout status deployment/backend-venta -n innovatech --timeout=300s
+        kubectl rollout status deployment/backend-despacho -n innovatech --timeout=300s
+        kubectl rollout status deployment/frontend-app -n innovatech --timeout=300s
