@@ -15,37 +15,55 @@ spec:
       labels:
         app: backend-venta
     spec:
+      terminationGracePeriodSeconds: 40  # mayor que preStop sleep + tiempo de requests en vuelo
       containers:
       - name: venta
-        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-ventas:latest # REEMPLAZAR
+        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-ventas:latest
         ports:
         - containerPort: 8080
-        # EL SEGURO DE VIDA: Pruebas de salud
+        lifecycle:
+          preStop:
+            exec:
+              # Drena requests en vuelo antes de que K8s envíe SIGTERM
+              # Esto elimina los 502 durante rolling updates
+              command: ["sh", "-c", "sleep 10"]
+        # startupProbe: le da tiempo a Spring para arrancar sin que liveness lo mate
+        # 30 intentos * 10s = 300s máximo de startup. No afecta readiness ni liveness.
+        startupProbe:
+          httpGet:
+            path: /actuator/health  # si no tienen actuator, usar tcpSocket port 8080
+            port: 8080
+          failureThreshold: 30
+          periodSeconds: 10
+        # readinessProbe: solo se activa DESPUÉS de que startupProbe pase
         readinessProbe:
-          tcpSocket:
-            port: 8080 # (8081 para despachos)
-          initialDelaySeconds: 20 # K8s esperará 20 seg antes de probar
-          periodSeconds: 10       # Re-probará cada 10 seg
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        # livenessProbe: mata el pod si ya levantó pero se colgó
         livenessProbe:
-          tcpSocket:
-            port: 8080 # (8081 para despachos)
-          initialDelaySeconds: 30
+          httpGet:
+            path: /actuator/health
+            port: 8080
           periodSeconds: 15
+          failureThreshold: 3
         resources:
           requests:
-            cpu: "100m"      # Bajamos de 250m a 100m
-            memory: "256Mi" # Bajamos de 512Mi a 128Mi
+            cpu: "200m"    # subimos: la JVM necesita CPU para el JIT en arranque
+            memory: "256Mi"
           limits:
             cpu: "600m"
             memory: "768Mi"
         env:
         - name: DB_ENDPOINT
-          value: "innovatech-db-svc" # El DNS interno de tu base de datos en K8s
+          value: "innovatech-db-svc"
         - name: DB_PORT
           value: "3306"
         - name: DB_NAME
           value: "innovatech_db"
-        # Cumpliendo con el IE5: Gestión de Secrets
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
@@ -69,7 +87,6 @@ spec:
   ports:
   - port: 8080
     targetPort: 8080
-
 ---
 # ==========================================
 # MICROSERVICIO: DESPACHO
@@ -88,37 +105,48 @@ spec:
       labels:
         app: backend-despacho
     spec:
+      terminationGracePeriodSeconds: 40
       containers:
       - name: despacho
-        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-despachos:latest # REEMPLAZAR
+        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/back-despachos:latest
         ports:
         - containerPort: 8080
-        # EL SEGURO DE VIDA: Pruebas de salud
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 10"]
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          failureThreshold: 30
+          periodSeconds: 10
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /actuator/health
             port: 8080
-          initialDelaySeconds: 20 # K8s esperará 20 seg antes de probar
-          periodSeconds: 10       # Re-probará cada 10 seg
+          periodSeconds: 10
+          failureThreshold: 3
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /actuator/health
             port: 8080
-          initialDelaySeconds: 30
           periodSeconds: 15
+          failureThreshold: 3
         resources:
           requests:
-            cpu: "100m"      # Bajamos de 250m a 50m
-            memory: "256Mi" # Bajamos de 512Mi a 128Mi
+            cpu: "200m"
+            memory: "256Mi"
           limits:
             cpu: "600m"
             memory: "768Mi"
         env:
         - name: DB_ENDPOINT
-          value: "innovatech-db-svc" # El DNS interno de tu base de datos en K8s
+          value: "innovatech-db-svc"
         - name: DB_PORT
           value: "3306"
         - name: DB_NAME
           value: "innovatech_db"
-        # Cumpliendo con el IE5: Gestión de Secrets
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
