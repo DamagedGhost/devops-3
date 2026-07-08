@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 686631061929.dkr.ecr.us-east-1.amazonaws.com/front:latest # REEMPLAZAR
+        image: 353016180077.dkr.ecr.us-east-1.amazonaws.com/front:latest # REEMPLAZAR
         ports:
         - containerPort: 80
         resources:
