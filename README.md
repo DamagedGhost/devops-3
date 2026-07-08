@@ -193,5 +193,3 @@ back-Ventas_SpringBoot/
 front_despacho/
 k8s/
 ```
-
-Si quieres, puedo convertir este README en una versión más formal para entrega académica o adaptarlo a un pipeline real de GitHub Actions, AWS CodeBuild o AWS CodePipeline.
